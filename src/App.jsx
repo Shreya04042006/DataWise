@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, FilePlus2,
   Globe, HeartPulse, List, Menu, Mic, Pill, Search, ShieldCheck, Sparkles,
   Upload, X, IndianRupee, BookOpen, Stethoscope, FileText
 } from 'lucide-react';
 import './App.css';
+import './sections.css';
+import AboutSection from './components/AboutSection.jsx';
+import DataSourcesSection from './components/DataSourcesSection.jsx';
+import HelpSection from './components/HelpSection.jsx';
+import NearbyStoresSection from './components/NearbyStoresSection.jsx';
 
 const popularMedicines = ['Paracetamol', 'Amoxicillin', 'Pantoprazole', 'Azithromycin', 'Metformin'];
 
@@ -26,9 +31,29 @@ function App() {
   const [activeNav, setActiveNav] = useState('Home');
 
   const navItems = [
-    ['Home', '#home'], ['How it Works', '#how-it-works'], ['About', '#about'],
-    ['Data Sources', '#data-sources'], ['Help', '#help']
+    ['Home', '#home'], ['How it Works', '#how-it-works'], ['Nearby Stores', '#nearby-stores'],
+    ['About', '#about'], ['Data Sources', '#data-sources'], ['Help', '#help']
   ];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sectionIds = ['home', 'how-it-works', 'nearby-stores', 'about', 'data-sources', 'help'];
+      const scrollPos = window.scrollY + 120;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i];
+        const el = document.getElementById(id);
+        if (el && scrollPos >= el.offsetTop) {
+          const matched = navItems.find(([, href]) => href === `#${id}`);
+          if (matched) {
+            setActiveNav(matched[0]);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const runSearch = (value = search) => {
     const query = value.trim();
@@ -186,38 +211,50 @@ function App() {
         </div>
       </section>
 
-      <section className="info-section" id="about">
-        <div className="info-icon"><HeartPulse size={30} /></div>
-        <div className="info-copy">
-          <span className="section-kicker">MEDICINE CLARITY FOR EVERYONE</span>
-          <h2>Better information. <span>Smarter conversations.</span></h2>
-          <p>DawaWise is designed to help people understand medicine names and compare listed prices. It does not replace professional medical advice or a prescription from your clinician.</p>
-        </div>
-        <a className="text-link" href="#data-sources">Explore our approach <ArrowUpRight size={17} /></a>
-      </section>
+      <NearbyStoresSection />
 
-      <section className="sources-section" id="data-sources">
-        <div className="section-heading">
-          <span className="section-kicker">TRANSPARENCY MATTERS</span>
-          <h2>Built around <span>trusted information</span></h2>
-          <p>Medicine details and prices should always be checked against reliable, up-to-date sources.</p>
-        </div>
-        <div className="source-grid">
-          <article className="source-card"><span><ShieldCheck /></span><h3>Verified information</h3><p>Designed to show clear medicine details and source references.</p></article>
-          <article className="source-card"><span><IndianRupee /></span><h3>Price transparency</h3><p>Compare listed prices while checking pack size and date.</p></article>
-          <article className="source-card"><span><Stethoscope /></span><h3>Professional guidance</h3><p>Always consult a doctor or pharmacist before changing medicines.</p></article>
-        </div>
-      </section>
+      <AboutSection />
 
-      <section className="help-banner" id="help">
-        <div><span className="section-kicker">NEED HELP?</span><h2>Medicine choices start with clear information.</h2><p>Use DawaWise as a starting point for questions to discuss with your healthcare professional.</p></div>
-        <a href="mailto:hello@dawawise.example" className="help-button">Contact the team <ArrowRight size={18} /></a>
-      </section>
+      <DataSourcesSection />
 
-      <footer className="footer">
-        <Logo />
-        <p>© {new Date().getFullYear()} DawaWise. Made to support informed conversations.</p>
-        <span className="footer-note"><BookOpen size={15} /> Informational demo — not medical advice.</span>
+      <HelpSection />
+
+      <footer className="footer-extended">
+        <div className="footer-inner-grid">
+          <div className="footer-brand-col">
+            <Logo />
+            <p>
+              An informational platform designed to make Indian medicine names, generic alternatives,
+              and comparative price structures clearer and easier to understand.
+            </p>
+          </div>
+
+          <div className="footer-col">
+            <h5>Navigation</h5>
+            <ul className="footer-links-list">
+              <li><a href="#home">Home</a></li>
+              <li><a href="#how-it-works">How DawaWise Works</a></li>
+              <li><a href="#nearby-stores">Nearby Stores</a></li>
+              <li><a href="#about">About DawaWise</a></li>
+              <li><a href="#data-sources">Data Sources &amp; Transparency</a></li>
+              <li><a href="#help">Help &amp; FAQs</a></li>
+            </ul>
+          </div>
+
+          <div className="footer-col">
+            <h5>Important Notice</h5>
+            <p style={{ margin: 0, color: '#9cb5db', fontSize: '13px', lineHeight: '1.6' }}>
+              DawaWise is an educational technology demonstration and does not provide medical advice, diagnosis, or prescription replacement.
+            </p>
+          </div>
+        </div>
+
+        <div className="footer-bottom-row">
+          <p>© {new Date().getFullYear()} DawaWise. All rights reserved.</p>
+          <span className="footer-note" style={{ color: '#9cb5db' }}>
+            <BookOpen size={14} /> Informational Educational Prototype — Not Medical Advice.
+          </span>
+        </div>
       </footer>
     </main>
   );
