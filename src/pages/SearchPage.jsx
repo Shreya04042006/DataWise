@@ -6,15 +6,44 @@ const initialRecent = ["paracetamol", "metformin 500", "pantoprazole 40", "amlod
 
 function PillIcon() { return <span className="brand-mark" aria-hidden="true"><span /></span>; }
 function Header() {
-  return <header className="site-header"><a className="brand" href="/" aria-label="DawaWise home"><PillIcon /><span>Dawa<span className="brand-accent">Wise</span></span></a><nav className="main-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/search" aria-current="page">Search</a></nav><span className="source-badge"><span aria-hidden="true">✚</span> Jan Aushadhi Focus</span></header>;
+  return <header className="site-header"><div><a className="brand" href="/" aria-label="DawaWise home"><PillIcon /><span>Dawa<span className="brand-accent">Wise</span></span></a><nav className="main-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/#how-it-works">How It Works</a><a href="/#data-sources">Data Sources</a><a href="/#about">About</a><a href="/search" aria-current="page">Search</a></nav><span className="source-badge"><span aria-hidden="true">✚</span> Jan Aushadhi Focus</span></div></header>;
 }
-function SearchSection({ onSearch }) {
+function SearchSection() {
+  return <section className="hero-section" aria-labelledby="page-title"><h1 id="page-title">Find the Generic.<br className="desktop-break" /> <span>Understand Your Options.</span></h1><p className="hero-copy">Explore medicine details, compare available prices, and review potential generic alternatives from identified sources.</p></section>;
+}
+function TabbedSearchPanel({ onSearch }) {
+  const [activeTab, setActiveTab] = useState("search");
   const [query, setQuery] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+  
   function submit(event) { event.preventDefault(); if (query.trim()) onSearch(query.trim()); }
-  return <section className="intro-section" aria-labelledby="page-title"><p className="eyebrow">MEDICINE INFORMATION, MADE CLEAR</p><h1 id="page-title">Make Medicine<br className="desktop-break" /> Decisions <span>Wisely.</span></h1><p className="intro-copy">Search medicine details and explore Jan Aushadhi information with clear source and verification labels.</p><form className="search-form" onSubmit={submit}><label className="sr-only" htmlFor="medicine-query">Search medicine, brand or molecule</label><span className="search-icon" aria-hidden="true">⌕</span><input id="medicine-query" type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search medicine, brand or molecule..." autoComplete="off" /><button type="submit" disabled={!query.trim()}>Search <span aria-hidden="true">→</span></button></form><p className="examples"><strong>Try:</strong>{" "}{examples.map((item, i) => <span key={item}><button type="button" onClick={() => onSearch(item)}>{item}</button>{i < examples.length - 1 ? <span className="comma">·</span> : ""}</span>)}</p></section>;
+  
+  function handleDrag(e) { e.preventDefault(); e.stopPropagation(); if (e.type === "dragenter" || e.type === "dragover") setDragActive(true); else if (e.type === "dragleave") setDragActive(false); }
+  function handleDrop(e) { e.preventDefault(); e.stopPropagation(); setDragActive(false); validateAndSetFile(e.dataTransfer.files[0]); }
+  function handleChange(e) { validateAndSetFile(e.target.files[0]); }
+  function validateAndSetFile(selectedFile) {
+    setUploadError(null);
+    if (!selectedFile) return;
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!validTypes.includes(selectedFile.type)) {
+      setUploadError("Invalid file type. Please upload JPG, PNG, or PDF.");
+      return;
+    }
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setUploadError("File too large. Maximum size is 5MB.");
+      return;
+    }
+    setFile(selectedFile);
+  }
+  function removeFile() { setFile(null); setUploadError(null); }
+  
+  return <section className="tabbed-search-panel"><div className="tabs"><button className={"tab-button " + (activeTab === "search" ? "active" : "")} onClick={() => setActiveTab("search")}>Search by Name</button><button className={"tab-button " + (activeTab === "upload" ? "active" : "")} onClick={() => setActiveTab("upload")}>Upload Prescription</button></div><div className="tab-content"> {activeTab === "search" ? <><form className="search-bar" onSubmit={submit}><label className="sr-only" htmlFor="medicine-query">Search medicine, brand or molecule</label><input id="medicine-query" type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search medicine, brand or molecule..." autoComplete="off" /><button type="submit" disabled={!query.trim()}>Search</button></form><div className="popular-chips"><strong>Popular:</strong>{" "}{examples.map((item, i) => <button key={item} type="button" onClick={() => onSearch(item)}>{item}</button>)}</div></> : <><div className={`upload-area ${dragActive ? "drag-active" : ""} ${uploadError ? "upload-error" : ""}`} onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}><input type="file" id="prescription-upload" accept="image/*,.pdf" hidden onChange={handleChange} /><label htmlFor="prescription-upload" className="upload-label"><div className="upload-icon">📄</div><p>{file ? file.name : "Drag & drop your prescription here or click to browse"}</p><small>Supported: JPG, PNG, PDF (Max 5MB)</small></label>{uploadError && <p className="error-message">{uploadError}</p>}{file && <div className="upload-actions"><button type="button" className="btn-primary" onClick={() => alert("Prescription upload integration pending backend endpoint")}>Upload</button><button type="button" className="btn-secondary" onClick={removeFile}>Remove</button></div>}</div></>} </div></section>;
 }
 function RecentSearches({ searches, onSearch, onClear }) {
-  return <section className="recent-section" aria-labelledby="recent-title"><div className="section-heading"><div><span className="section-icon" aria-hidden="true">◷</span><h2 id="recent-title">Recent searches</h2></div>{searches.length > 0 && <button className="text-button" type="button" onClick={onClear}>Clear all</button>}</div>{searches.length === 0 ? <p className="empty-recent">Your searches will appear here.</p> : <div className="recent-chips">{searches.map(item => <button className="recent-chip" key={item} type="button" onClick={() => onSearch(item)}><span aria-hidden="true">⌕</span>{item}</button>)}</div>}</section>;
+  if (searches.length === 0) return null;
+  return <section className="recent-section" aria-labelledby="recent-title"><div className="section-heading"><div><span className="section-icon" aria-hidden="true">◷</span><h2 id="recent-title">Recent searches</h2></div><button className="text-button" type="button" onClick={onClear}>Clear all</button></div><div className="recent-chips">{searches.map(item => <button className="recent-chip" key={item} type="button" onClick={() => onSearch(item)}><span aria-hidden="true">⌕</span>{item}</button>)}</div></section>;
 }
 
 function Detail({ label, value }) { return <div className="medicine-detail"><dt>{label}</dt><dd>{value || "Not listed"}</dd></div>; }
@@ -42,9 +71,13 @@ export function SavingsPanel({ medicine }) {
     {available && <div className="monthly-estimate"><label htmlFor="packs-per-month">Estimated comparable packs per month (optional)</label><input id="packs-per-month" type="number" min="0.01" max="1000" step="0.01" inputMode="decimal" value={packsPerMonth} onChange={event => setPacksPerMonth(event.target.value)} placeholder="Enter packs per month"/>{monthly !== null && <p>Estimated monthly savings: <strong>{money(monthly)}</strong></p>}<small>Estimate uses only the pack count you enter; it is not medicine-use guidance.</small></div>}
   </section>;
 }
-function SearchResultDialog({ query, result, loading, onClose, onRetry, onChooseCandidate }) {
+function SearchResultDialog({ query, result, loading, onClose, onRetry, onChooseCandidate, onEditSearch }) {
   const closeRef = useRef(null);
   const dialogRef = useRef(null);
+  const [editedQuery, setEditedQuery] = useState(query);
+  useEffect(() => {
+    setEditedQuery(query);
+  }, [query]);
   useEffect(() => {
     if (!query) return;
     const previousFocus = document.activeElement;
@@ -66,8 +99,10 @@ function SearchResultDialog({ query, result, loading, onClose, onRetry, onChoose
   if (!query) return null;
   const medicine = result?.medicine;
   const status = result?.status;
+  function handleEditSearch(event) { event.preventDefault(); if (editedQuery.trim()) { onClose(); onEditSearch(editedQuery.trim()); } }
   return <div className="modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialogRef} className="result-modal" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-busy={loading}>
-    <button ref={closeRef} className="modal-close" type="button" onClick={onClose} aria-label="Close dialog">×</button><p className="eyebrow">DAWAWISE SEARCH</p><h2 id="result-title">{loading ? "Searching catalogue" : medicine?.name || "Search result"}</h2><p className="query-pill">{query}</p>
+    <button ref={closeRef} className="modal-close" type="button" onClick={onClose} aria-label="Close dialog">×</button><p className="eyebrow">DAWAWISE SEARCH</p><h2 id="result-title">{loading ? "Searching catalogue" : medicine?.name || "Search result"}</h2>
+    <form className="edit-query-form" onSubmit={handleEditSearch}><label className="sr-only" htmlFor="edit-query">Edit search query</label><input id="edit-query" type="text" value={editedQuery} onChange={e => setEditedQuery(e.target.value)} placeholder="Edit medicine name..." /><button type="submit" disabled={!editedQuery.trim() || editedQuery === query}>Search</button></form>
     {loading && <div className="loading-state" role="status"><span className="loading-spinner" aria-hidden="true"/><strong>Searching medicine catalogue…</strong><span>Checking possible matches…</span></div>}
     {!loading && status === "matched" && <><div className={`match-banner ${result.match_source === "openrouter" ? "ai-banner" : ""}`}><strong>{result.match_source === "openrouter" ? "AI-assisted match — verify medicine details" : "Catalogue match"}</strong><span>{medicine?.verification_status || "Dataset record"}{medicine?.as_of_date ? ` · data date ${medicine.as_of_date}` : ""}</span></div><dl className="medicine-details"><Detail label="Generic / molecule" value={medicine?.generic_name}/><Detail label="Ingredients as listed" value={medicine?.ingredients}/><Detail label="Brand name" value={medicine?.branded_product_name}/><Detail label="Strength" value={medicine?.strength}/><Detail label="Dosage form" value={medicine?.dosage_form}/><Detail label="Pack size" value={medicine?.pack_size}/><Detail label="Observed market price" value={`${displayPrice(medicine?.market_mrp)} (${medicine?.market_price_status || "status unavailable"})`}/></dl><SavingsPanel medicine={medicine}/>{result.match_source === "openrouter" && <p className="notice-box">Please verify the medicine name, ingredients, strength, dosage form and pack before relying on this match.</p>}</>}
     {!loading && status === "clarification_required" && <><p className="dialog-message">{result.question || "Please choose the intended catalogue item."}</p><div className="choice-list">{(result.candidates || []).map((item, i) => <button type="button" className="choice-card" key={item.candidate_id || `${item.name}-${i}`} onClick={() => onChooseCandidate(item)}><strong>{item.name || "Catalogue item"}</strong><span>{[item.ingredients || item.generic_name, item.strength, item.dosage_form, item.pack_size].filter(Boolean).join(" · ")}</span></button>)}</div><p className="helper-text">Choosing a row confirms that exact catalogue record.</p></>}
@@ -100,5 +135,5 @@ export default function SearchPage() {
   }
   function close() { requestRef.current += 1; setActiveQuery(""); setLoading(false); }
   function chooseCandidate(medicine) { requestRef.current += 1; setLoading(false); setResult({ status: "matched", match_source: "csv", medicine, requires_confirmation: false }); }
-  return <div className="app-shell"><Header/><main className="page-content"><SearchSection onSearch={search}/><RecentSearches searches={recent} onSearch={search} onClear={() => setRecent([])}/></main><footer className="site-footer"><p>Medicine information only. Confirm medication changes with a qualified pharmacist or prescriber.</p></footer><SearchResultDialog query={activeQuery} result={result} loading={loading} onClose={close} onRetry={() => search(activeQuery)} onChooseCandidate={chooseCandidate}/></div>;
+  return <div className="app-shell"><Header/><main className="page-content"><SearchSection/><div className="search-container"><TabbedSearchPanel onSearch={search}/><RecentSearches searches={recent} onSearch={search} onClear={() => setRecent([])}/></div></main><footer className="site-footer"><p>Medicine information only. Confirm medication changes with a qualified pharmacist or prescriber.</p></footer><SearchResultDialog query={activeQuery} result={result} loading={loading} onClose={close} onRetry={() => search(activeQuery)} onChooseCandidate={chooseCandidate} onEditSearch={search}/></div>;
 }
