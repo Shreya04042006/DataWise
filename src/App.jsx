@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, FilePlus2,
   Globe, HeartPulse, List, Menu, Mic, Pill, Search, ShieldCheck, Sparkles,
@@ -117,22 +118,21 @@ function App() {
             <p className="hero-description">Understand your prescription, find verified generic alternatives and compare prices — all in one place.</p>
 
             <div className="hero-actions">
-              <button className="action-card primary-action" onClick={handleUpload}>
+              <Link to="/search" className="action-card primary-action">
                 <span className="action-icon"><Upload size={31} /></span>
                 <span className="action-text"><strong>Upload Prescription</strong><small>Scan &amp; find medicines</small></span>
                 <span className="action-arrow"><ArrowRight size={20} /></span>
-              </button>
-              <input id="prescription-file" type="file" accept="image/*,.pdf" hidden onChange={onFileChange} />
-              <form className="action-card search-action" onSubmit={(e) => { e.preventDefault(); runSearch(); }}>
+              </Link>
+              <Link to="/search" className="action-card search-action">
                 <span className="search-large"><Search size={36} /></span>
                 <span className="search-content">
                   <strong>Search Medicine</strong>
                   <span className="search-input-wrap">
-                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="By name or brand" aria-label="Medicine name" />
+                    <input placeholder="By name or brand" aria-label="Medicine name" readOnly />
                   </span>
                 </span>
-                <button className="action-arrow search-submit" aria-label="Search medicine" type="submit"><ArrowRight size={20} /></button>
-              </form>
+                <span className="action-arrow search-submit"><ArrowRight size={20} /></span>
+              </Link>
             </div>
 
             {notice && <div className="notice" role="status"><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
@@ -153,8 +153,8 @@ function App() {
                 <div className="phone-brand"><Logo /><Menu size={19} /></div>
                 <div className="phone-search"><Search size={17} /><span>Search medicine, brand or molecule...</span><Mic size={15} /></div>
                 <div className="phone-shortcuts">
-                  <button onClick={handleUpload}><Upload /><span>Upload<br />Prescription</span></button>
-                  <button onClick={() => document.getElementById('medicine-search')?.focus()}><Search /><span>Search<br />Medicine</span></button>
+                  <Link to="/search"><Upload /><span>Upload<br />Prescription</span></Link>
+                  <Link to="/search"><Search /><span>Search<br />Medicine</span></Link>
                 </div>
                 <div className="popular-head"><strong>Popular Searches</strong><a href="#popular">See all</a></div>
                 <div className="medicine-list" id="popular">
